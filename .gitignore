@@ -1,0 +1,8 @@
+
+# Pasta de configuração do Visual Studio Code
+/.vscode
+
+# Pasta com imagens de teste
+/imagens-teste
+
+*.pyc
