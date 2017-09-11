@@ -3,6 +3,6 @@
 /.vscode
 
 # Pasta com imagens de teste
-/imagens-teste
+/imagens
 
 *.pyc
