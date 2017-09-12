@@ -5,4 +5,7 @@
 # Pasta com imagens de teste
 /imagens
 
+# Pasta com os arquivos de preprocessamento
+/preprocessamento
+
 *.pyc

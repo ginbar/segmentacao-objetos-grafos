@@ -26,8 +26,8 @@ def main():
         help='Algoritmo de segmentacao para construcao do modelo.')
     parser.add_argument('-prepros', type=bool, default=False,
         help='Preprocessar uma sequencia de video.')
-    parser.add_argument('-dest', type=str, default='/preprocessamento',
-        help='Diretorio de destino para .')
+    parser.add_argument('-dirdest', type=str, default='/preprocessamento',
+        help='Diretorio de destino para o resultado do preprocessamento.')
     parser.add_argument('-sog', type=bool, default='isom',
         help='Algoritmo de grafos para propagacao da segmentacao.')
     parser.add_argument('-segm', type=str, default='slic',
@@ -54,16 +54,15 @@ def main():
     #imagem = data.horse()
 
     if args.prepros:
-        preprocessar_imagem(imagem)        
-
-    marcadores, grafo, marc_por_no = construir_modelo(imagem, args)
-    
-    for no in grafo.nodes():
-        print no, marc_por_no[no]
-
-    show_rag(marcadores, grafo, imagem)
-
-    plt.show()
+        preprocessar_imagem(imagem, args)        
+    else:
+        if args.dirdest is None:
+            raise Error('Argumento -dirdist vazio.')
+        marcadores, grafo, marc_por_no = construir_modelo(imagem, args)
+        for no in grafo.nodes():
+            print no, marc_por_no[no]
+        show_rag(marcadores, grafo, imagem)
+        plt.show()
     
 
 if __name__ == '__main__':
