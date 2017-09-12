@@ -6,6 +6,6 @@
 /imagens
 
 # Pasta com os arquivos de preprocessamento
-/preprocessamento
+/cache
 
 *.pyc
