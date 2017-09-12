@@ -2,12 +2,11 @@
 from skimage.io import imread
 from skimage.color import rgb2gray
 from skimage.segmentation import slic, watershed, random_walker, quickshift, felzenszwalb, mark_boundaries
-from skimage.future.graph import rag_mean_color, rag_boundary, show_rag
 from skimage.util import img_as_float
 from skimage.filters import sobel
 
 
-def marcad_bordas_grafo(imagem, args):
+def marcadores_e_bordas(imagem, args):
     
     marcadores = None
     bordas = None
@@ -31,6 +30,4 @@ def marcad_bordas_grafo(imagem, args):
     else:
         raise Error('Algoritmo de segmentacao nao suportado')
 
-    grafo = rag_mean_color(imagem, marcadores, mode='similarity', connectivity=100)
-
-    return marcadores, bordas, grafo
+    return marcadores, bordas
