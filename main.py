@@ -7,9 +7,11 @@ from skimage.future.graph import show_rag
 from skimage import data
 import argparse
 import matplotlib.pyplot as plt
+import networkx as nx
 
 from caracteristicas.momentos import cromaticidade
-from modelo.construir import construir_modelo 
+from modelo.construir import construir_modelo
+from modelo.visualzacao import visualizar_grafo_modelo 
 from processamento.preprocessamento import preprocessar_video, preprocessar_imagem 
 
 
@@ -61,10 +63,9 @@ def main():
         if args.dirdest is None:
             raise Error('Argumento -dirdist vazio.')
         marcadores, grafo, marc_por_no = construir_modelo(args)
-        for no in grafo.nodes():
-            print no, marc_por_no[no]
-        show_rag(marcadores, grafo, imagem)
-        plt.show()
+        # for no in grafo.nodes():
+        #     print no, marc_por_no[no]
+        visualizar_grafo_modelo(grafo, marcadores, imagem)
     
 
 if __name__ == '__main__':

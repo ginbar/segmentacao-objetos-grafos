@@ -14,7 +14,7 @@ def preprocessar_imagem(args):
 
     imagem = imread(args.arq)
 
-    marcadores, bordas, grafo = marcadares_e_bordas(imagem, args)
+    marcadores, bordas = marcadores_e_bordas(imagem, args)
     momentos = cromaticidade(imagem, marcadores)
     
     if not path.exists('cache'):

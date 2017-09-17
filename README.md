@@ -1,3 +1,3 @@
-#Segmentação de objetos utilizando grafos auto-organizáveis
+# Segmentação de objetos utilizando grafos auto-organizáveis
 
-Trabalho de conclusão de curso
+Trabalho de conclusão de curso.

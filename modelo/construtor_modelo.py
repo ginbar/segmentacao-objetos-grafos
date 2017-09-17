@@ -1,18 +1,9 @@
 
-from skimage.segmentation import slic, watershed, random_walker, quickshift
-from skimage.segmentation import mark_boundaries
-from skimage.util import img_as_float
-from skimage.io import imread
-from skimage.future.graph import rag_mean_color, rag_boundary, show_rag 
-
-import matplotlib.pyplot as plt
-import numpy as np
 from pylab import *
 from matplotlib.widgets import Button, RadioButtons
 from  matplotlib.colors import Normalize
-from skimage.filters import sobel
-from skimage import data
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class ConstrutorModelo(object):
@@ -22,9 +13,7 @@ class ConstrutorModelo(object):
         self.imagem = imagem
         self.marcadores = marcadores
         self.grafo = grafo
-        #self.bordas = mark_boundaries(self.imagem, self.marcadores)
         self.marcador_por_superpixel = {}
-        #self.grafo = rag_mean_color(self.imagem, self.marcadores)
         self.esta_prescionado = False
         self.marcados = set()
         self.cores = ('Azul', 'Vermelho', 'Verde', 'Amarelo', 
@@ -86,12 +75,9 @@ class ConstrutorModelo(object):
 
 
 
-    def extrair_grafo(self):
-        copia = self.grafo.copy()
-        for no in copia.nodes():
-            if no not in self.marcador_por_superpixel:
-                copia.remove_node(no)
-        return self.marcadores, copia, self.marcador_por_superpixel
+    def extrair_modelo(self):
+        subgrafo = self.grafo.subgraph(self.marcador_por_superpixel.keys())
+        return self.marcadores, subgrafo, self.marcador_por_superpixel
 
 
 

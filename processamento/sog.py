@@ -1,7 +1,14 @@
 
+from scipy.spatial.distance import euclidean
 
-def isom():
+
+def isom(grafo):
     pass
 
-def song():
+
+
+def song(grafo):
     pass
+
+
+    
