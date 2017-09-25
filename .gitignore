@@ -5,6 +5,9 @@
 # Pasta com imagens de teste
 /imagens
 
+# Pasta com videos de teste
+/videos
+
 # Pasta com os arquivos de preprocessamento
 /cache
 
