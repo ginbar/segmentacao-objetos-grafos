@@ -1,18 +1,12 @@
 
-from skimage.segmentation import slic
-from skimage.segmentation import mark_boundaries
-from skimage.util import img_as_float
 from skimage.io import imread
-from skimage.future.graph import show_rag
 from skimage import data
 import argparse
-import matplotlib.pyplot as plt
-import networkx as nx
+#import cv2 
 
-from caracteristicas.momentos import cromaticidade
-from modelo.construir import construir_modelo
-from modelo.visualzacao import visualizar_grafo_modelo 
 from processamento.preprocessamento import preprocessar_video, preprocessar_imagem 
+from processamento.segmentacao import segmentar_video, segmentar_imagem, visualizar_segmen_video, segmentar_seq_imagens
+                                                                                        
 
 
 def main():
@@ -20,13 +14,12 @@ def main():
     parser = argparse.ArgumentParser(description='Segmentacao de objetos com grafos.')
     
     """Parametros obrigatorios"""
-    parser.add_argument('-arq', type=str, 
-        help='Arquivo para segmentacao.')
+    parser.add_argument('-arq', type=str, help='Arquivo para segmentacao.')
     
     """Parametros opcionais"""
-    parser.add_argument('-video', type=bool, default=False,
+    parser.add_argument('-tipo', type=str, default='seqimgs',
         help='Algoritmo de segmentacao para construcao do modelo.')
-    parser.add_argument('-prepros', type=bool, default=False,
+    parser.add_argument('-modo', type=str, default='segmen',
         help='Preprocessar uma sequencia de video.')
     parser.add_argument('-dirdest', type=str, default='/teste',
         help='Diretorio de destino para o resultado do preprocessamento.')
@@ -34,9 +27,9 @@ def main():
         help='Utilizar.')
     parser.add_argument('-sog', type=bool, default='isom',
         help='Algoritmo de grafos para propagacao da segmentacao.')
-    parser.add_argument('-segm', type=str, default='slic',
+    parser.add_argument('-segm', type=str, default='qcshift',
         help='Algoritmo de segmentacao para construcao do modelo.')
-    parser.add_argument('-segs', type=str, default='slic',
+    parser.add_argument('-segs', type=str, default='quickshift',
         help='Algoritmo de segmentacao para sequencia de video.')
     parser.add_argument('-k', type=int, default=100,
         help='Valor de k para o kmeans do slic.')
@@ -53,20 +46,26 @@ def main():
 
     
     args = parser.parse_args()
+    print args.arq
+    imagem = imread(args.arq) #if args.tipo == 'imagem' else None
+    video = imread(args.arq) #if args.tipo == 'video' else None
+    imagens = [imagem]
 
-    imagem = imread(args.arq)
-    #imagem = data.horse()
-
-    if args.prepros:
-        preprocessar_imagem(args)        
+    if args.modo == 'prepros' and args.tipo == 'imagem':
+        preprocessar_imagem(imagem, args)
+    elif args.modo == 'prepros' and args.tipo == 'video':
+        preprocessar_video(video, args)        
+    elif args.modo == 'visual':
+        visualizar_segmen_video(video, args)
+    elif args.modo == 'segmen' and args.tipo == 'imagem':
+        segmentar_imagem(imagem, args)
+    elif args.modo == 'segmen' and args.tipo == 'video':
+        segmentar_video(video, args)
+    elif args.modo == 'segmen' and args.tipo == 'seqimgs':
+        segmentar_seq_imagens(imagens, args)        
     else:
-        if args.dirdest is None:
-            raise Error('Argumento -dirdist vazio.')
-        marcadores, grafo, marc_por_no = construir_modelo(args)
-        # for no in grafo.nodes():
-        #     print no, marc_por_no[no]
-        visualizar_grafo_modelo(grafo, marcadores, imagem)
-    
+        raise ValueError('Modo desconhecido.')
+
 
 if __name__ == '__main__':
     main()

@@ -4,30 +4,73 @@ from skimage.color import rgb2gray
 from skimage.segmentation import slic, watershed, random_walker, quickshift, felzenszwalb, mark_boundaries
 from skimage.util import img_as_float
 from skimage.filters import sobel
+import matplotlib.pyplot as plt
+
+import caracteristicas.momentos  as mts
+from modelo.construir import construir_modelo
+from modelo.visualzacao import visualizar_grafo_modelo
+from processamento.sog import Isom
+from processamento.preprocessamento import  marcadores
 
 
-def marcadores_e_bordas(imagem, args):
+
+def segmentar_video(video, args):
+    """
+    Segmenta uma sequencia de video.
+    """    
+    _, frame = video.read()
+
+    marcadores, grafo, cor_por_no =  construir_modelo(frame, args)
     
-    marcadores = None
-    bordas = None
+    superpxs = mts.cromaticidade(video, marcadores)
 
-    if args.segm == 'wtshed':
-        imagem_cinza = rgb2gray(imagem) 
-        bordas = sobel(imagem)
-        marcadores = watershed(bordas, 100)
-    elif args.segm =='rdwalker':
-        alg_segmentacao = random_walker
-    elif args.segm =='qcshift':
-        marcadores = quickshift(imagem, max_dist=args.distmax, sigma=args.sigma)
-        bordas = mark_boundaries(imagem, marcadores)
-    elif args.segm == 'slic': 
-        marcadores = slic(img_as_float(imagem), n_segments=args.k, 
-            compactness=args.compactness, sigma=args.sigma, slic_zero=args.slico)
-        bordas = mark_boundaries(imagem, marcadores)
-    elif args.segm == 'felzenszwalb':
-        marcadores = felzenszwalb(imagem, sigma=args.sigma)
-        bordas = mark_boundaries(imagem, marcadores)
-    else:
-        raise Error('Algoritmo de segmentacao nao suportado')
+    figura = plt.figure(figsize=(8, 8))
+    eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
 
-    return marcadores, bordas
+    sog = Isom(grafo, cor_por_no, )
+
+    while not sog.convergiu():
+        sog.epoca()
+        
+        #if args.prepros == False:
+        #    visualizar_grafo_marcadores()
+        plt.show()
+
+
+
+def segmentar_seq_imagens(imagens, args):
+    """
+    Segmenta uma conjunto de imagens parecidas. As imagens devem ser passadas 
+    como um array. 
+    """
+    
+    prim_img = imagens[0]
+
+    marcadores, grafo, cor_por_no =  construir_modelo(prim_img, args)
+    
+    superpxs = mts.cromaticidade(prim_img, marcadores)
+
+    figura = plt.figure(figsize=(8, 8))
+    eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
+
+    sog = Isom(grafo, cor_por_no)
+
+    for img in imagens[1:]:
+        superpxs = mts.cromaticidade(img, marcadores(img))
+        while not sog.convergiu():
+            sog.epoca()
+            
+
+
+
+def segmentar_imagem(imagem, args):
+    marcadores, grafo, marc_por_no = construir_modelo(imagem, args)
+    visualizar_grafo_modelo(grafo, marcadores, imagem)
+
+
+def visualizar_grafo_marcadores():
+    pass
+
+
+def visualizar_segmen_video(video, args):
+    pass

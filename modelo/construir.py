@@ -3,15 +3,12 @@ from skimage.io import imread
 from skimage.future.graph import rag_mean_color
 
 from modelo.construtor_modelo import ConstrutorModelo
-from processamento.segmentacao import marcadores_e_bordas
-from processamento.preprocessamento import carregar_imagem_prepros
+from processamento.preprocessamento import carregar_imagem_prepros, marcadores_e_bordas
 
-def construir_modelo(args):
+
+def construir_modelo(imagem, args):
     
-    imagem = imread(args.arq)
-
     construtor = ConstrutorModelo(imagem)
-
     marcadores, bordas = None, None
 
     if args.cache:
