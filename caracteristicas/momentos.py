@@ -26,7 +26,7 @@ def cromaticidade(imagem, marcadores, numero_momentos=5):
     
     momentos = np.array([[momentos_por_indices(matriz, m, l) for m, l in indices] for matriz in matrizes])
     
-    return [SuperPixel(label, np.append(mts[:, 0], mts[:, 1])) for (label, _), mts in zip(superpixels, momentos)]
+    return np.array([np.append(mts[:, 0], mts[:, 1]) for (label, _), mts in zip(superpixels, momentos)]) 
 
 
 

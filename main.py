@@ -4,7 +4,7 @@ from skimage import data
 import argparse
 #import cv2 
 
-from processamento.preprocessamento import preprocessar_video, preprocessar_imagem 
+from processamento.preprocessamento import preprocessar_video, preprocessar_imagem, ler_seq_imagens, preprocessar_seq_imgs 
 from processamento.segmentacao import segmentar_video, segmentar_imagem, visualizar_segmen_video, segmentar_seq_imagens
                                                                                         
 
@@ -21,7 +21,7 @@ def main():
         help='Algoritmo de segmentacao para construcao do modelo.')
     parser.add_argument('-modo', type=str, default='segmen',
         help='Preprocessar uma sequencia de video.')
-    parser.add_argument('-dirdest', type=str, default='/teste',
+    parser.add_argument('-dirdest', type=str, default='teste',
         help='Diretorio de destino para o resultado do preprocessamento.')
     parser.add_argument('-cache', type=bool, default=False,
         help='Utilizar.')
@@ -46,10 +46,9 @@ def main():
 
     
     args = parser.parse_args()
-    print args.arq
-    imagem = imread(args.arq) #if args.tipo == 'imagem' else None
-    video = imread(args.arq) #if args.tipo == 'video' else None
-    imagens = [imagem]
+    imagem = imread(args.arq) if args.tipo == 'imagem'  else None
+    video = None if args.tipo == 'video' else None
+    imagens = ler_seq_imagens(args.arq) if args.tipo == 'seqimgs' else None
 
     if args.modo == 'prepros' and args.tipo == 'imagem':
         preprocessar_imagem(imagem, args)
@@ -62,7 +61,9 @@ def main():
     elif args.modo == 'segmen' and args.tipo == 'video':
         segmentar_video(video, args)
     elif args.modo == 'segmen' and args.tipo == 'seqimgs':
-        segmentar_seq_imagens(imagens, args)        
+        segmentar_seq_imagens(imagens, args)
+    elif args.modo == 'prepros' and args.tipo == 'seqimgs':
+        preprocessar_seq_imgs(imagens, args)
     else:
         raise ValueError('Modo desconhecido.')
 
