@@ -8,13 +8,20 @@ import networkx as nx
 from modelo.visualzacao import visualizar_grafo_marcadores
 
 
+"""
+Anotacoes:
+-Extracao do background antes de calcular os superpixels
+-FFMPEG
+-
+"""
+
+
 class Isom(object):
 
 
-    def __init__(self, grafo, cooling=0.8, epocas=3):
+    def __init__(self, grafo, cooling=0.8, epocas=20):
         self.cooling = cooling
         self.grafo = grafo
-        self.mascara = np.array([])
         self.raio = 5
         self.raio_max = 5
         self.intervalo = 2
@@ -24,7 +31,15 @@ class Isom(object):
         self.intervalo = 3
         self.max_epocas = epocas
         self.epoca_atual = 1
+        self.similaridades = []
         self.superpxs = None
+
+
+
+    def novos_superpxs(self, superpxs):
+        self.superpxs = superpxs
+        self.epoca_atual = 1
+        self.raio = 5
 
 
 
@@ -43,13 +58,15 @@ class Isom(object):
             if vencedor is not None: 
                 vizinhos_distancias = self.vizinhos(self.grafo, vencedor,  distancia=self.raio)
                 for viz, dist in vizinhos_distancias:
-                    self.grafo.node[viz]['momentos'] -= math.pow(2, -1) * adaptacao 
+                    self.grafo.node[viz]['momentos'] -= math.pow(2, -dist) * adaptacao 
                 vizinhos = [vizinho for vizinho, _ in vizinhos_distancias]
                 self.recalc_similaridades(vizinhos, self.superpxs, self.similaridades)
-        
+
+        print 'raio:{}, adaptacao:{}, epoca:{}'.format(self.raio, adaptacao, self.epoca_atual)
+
         self.epoca_atual += 1
-        print self.epoca_atual
-        if self.raio % self.intervalo == 0 and self.raio > self.raio_min:
+  
+        if self.epoca_atual % self.intervalo == 0 and self.raio > self.raio_min:
             self.raio -= 1
 
 
@@ -61,8 +78,6 @@ class Isom(object):
 
     def definir_vencedor(self, grafo, indice_superpx, similaridades):
         indice_vencedor = np.argmin(similaridades[indice_superpx]) 
-        if similaridades[indice_superpx, indice_vencedor] < 2: 
-            return None
         return grafo.nodes()[indice_vencedor]
     
 
@@ -84,6 +99,8 @@ class Isom(object):
     def vizinhos(self, grafo, no, distancia=1):
         caminhos = nx.single_source_shortest_path_length(grafo, no, cutoff=distancia)
         return [(viz, dist) for viz, dist in caminhos.iteritems() if dist <= distancia and viz != no]
+
+
 
     def no_por_superpx(self):
         return [self.definir_vencedor(self.grafo, ind_spx, self.similaridades) for ind_spx in range(len(self.similaridades))]

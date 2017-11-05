@@ -11,4 +11,7 @@
 # Pasta com os arquivos de preprocessamento
 /cache
 
+# Pasta com os resultados da segmentação
+/resultados
+
 *.pyc

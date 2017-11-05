@@ -1,18 +1,18 @@
 
 from skimage.io import imread
-from skimage.color import rgb2gray
-from skimage.segmentation import slic, watershed, random_walker, quickshift, felzenszwalb, mark_boundaries
-from skimage.util import img_as_float
-from skimage.filters import sobel
 import matplotlib.pyplot as plt
-import networkx as np
+import networkx as nx
+import numpy as np
+from  matplotlib.colors import Normalize
+from pylab import cm
+import cv2 
 
 import caracteristicas.momentos  as mts
 from modelo.construir import construir_modelo
 from modelo.visualzacao import visualizar_grafo_modelo
 from processamento.sog import Isom
 from processamento.preprocessamento import  marcadores, carregar_prepros_seq_imagens
-
+from modelo.cores import intensidade_por_cor
 
 
 def segmentar_video(video, args):
@@ -49,26 +49,49 @@ def segmentar_seq_imagens(imagens, args):
 
     prim_img = imagens[0]
 
-    marcadores, grafo =  construir_modelo(prim_img, marcadores[0], bordas[0], args)
+    _, grafo =  construir_modelo(prim_img, marcadores[0], bordas[0], args)
 
     mts_por_superpx = {}
     for no in grafo.nodes():
         mts_por_superpx[no] = momentos[0][no]
 
     # Usando os momentos da primeira figura como momentos do modelo
-    np.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
+    nx.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
 
     figura = plt.figure(figsize=(8, 8))
     eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
+    eixo.imshow(prim_img)
 
+    larg, altu, _ = prim_img.shape 
+    mascara = np.empty((larg, altu)) * np.nan
+    
     sog = Isom(grafo)
+    
+    # para testes
     imagens = [prim_img,  prim_img,  prim_img]
+    momentos = [momentos[0], momentos[0], momentos[0]]
+    marcadores = [marcadores[0], marcadores[0], marcadores[0]]
 
-    for img, mts in zip(imagens[1:], momentos):
-        sog.superpxs = mts
+    frames_segmentados = []
+
+    for img, marcs, mts in zip(imagens[1:], marcadores[1:], momentos[1:]):
+        
+        sog.novos_superpxs(mts)
+        
         while not sog.convergiu():
             sog.epoca()
-        sog.no_por_superpx()            
+        
+        resultado = sog.no_por_superpx()
+        
+        for spx, no in enumerate(resultado):
+                np.putmask(mascara, marcs == spx, intensidade_por_cor[grafo.node[no]['cor']])
+        
+        eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
+        plt.show()
+
+        frames_segmentados.append(mascara)
+
+    salvar_video(frames_segmentados, args.dirdest)
 
 
 
@@ -93,4 +116,8 @@ def visualizar_grafo_marcadores():
 
 
 def visualizar_segmen_video(video, args):
+    pass
+
+
+def salvar_video(frames, nome, fps=0.5):
     pass

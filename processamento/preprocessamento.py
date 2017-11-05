@@ -68,12 +68,13 @@ def preprocessar_seq_imgs(imagens, args):
     """
     Preprocessa uma sequencia de imagens
     """
+    
+    if not path.exists('cache'):
+        makedirs('cache/imagens')
+
+    dir_completo = 'cache/imagens/' + args.dirdest
+
     for indice in range(len(imagens)):
-
-        if not path.exists('cache'):
-            makedirs('cache/imagens')
-
-        dir_completo = 'cache/imagens/' + args.dirdest
 
         imagem = imagens[indice]
 
