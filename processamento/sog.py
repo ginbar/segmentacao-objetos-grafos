@@ -48,12 +48,14 @@ class Isom(object):
         adaptacao = max(self.adaptacao_min, math.exp(-self.cooling * self.epoca_atual / self.max_epocas) * self.adaptacao_max)
         
         self.similaridades = self.calc_similaridades(self.grafo, self.superpxs) 
-        
-        indices_superpx = range(len(self.superpxs))
-        shuffle(indices_superpx)
 
-        for ind_spx in indices_superpx:
-            vencedor = self.definir_vencedor(self.grafo, ind_spx, self.similaridades)
+        superpxs = list(self.superpxs)
+
+        shuffle(superpxs)
+
+        for label_spx, _ in superpxs:
+            print label_spx
+            vencedor = self.definir_vencedor(self.grafo, label_spx, self.similaridades)
             # Se no ha vencedor, quer dizer que o superpx foi considerado parte do background
             if vencedor is not None: 
                 vizinhos_distancias = self.vizinhos(self.grafo, vencedor,  distancia=self.raio)
@@ -83,16 +85,23 @@ class Isom(object):
 
 
     def calc_similaridades(self, grafo, superpxs):
-        return np.array([[euclidean(spx, grafo.node[n]['momentos']) for n in grafo.nodes()] for spx in superpxs])
+        return {label: [euclidean(momts, grafo.node[n]['momentos']) for n in grafo.nodes()] for (label, momts) in superpxs}
+        # return np.array([[euclidean(spx, grafo.node[n]['momentos']) for n in grafo.nodes()] for spx in superpxs])
 
 
 
     def recalc_similaridades(self, alterados, superpxs, similaridades):
         nos = self.grafo.nodes()
         indices_alterados = [nos.index(alterado) for alterado in alterados]
-        for ind_spx in range(len(superpxs)):
+        for label_spx, momentos in superpxs:
             for ind_alter in indices_alterados:
-                similaridades[ind_spx, ind_alter] = euclidean(superpxs[ind_spx], self.grafo.node[nos[ind_alter]]['momentos'])
+                similaridades[label_spx][ind_alter] = euclidean(momentos, self.grafo.node[nos[ind_alter]]['momentos'])
+        
+        # nos = self.grafo.nodes()
+        # indices_alterados = [nos.index(alterado) for alterado in alterados]
+        # for ind_spx in range(len(superpxs)):
+        #     for ind_alter in indices_alterados:
+        #         similaridades[ind_spx][ ind_alter] = euclidean(superpxs[ind_spx], self.grafo.node[nos[ind_alter]]['momentos'])
 
 
 
@@ -103,4 +112,4 @@ class Isom(object):
 
 
     def no_por_superpx(self):
-        return [self.definir_vencedor(self.grafo, ind_spx, self.similaridades) for ind_spx in range(len(self.similaridades))]
+        return [self.definir_vencedor(self.grafo, label_spx, self.similaridades) for label_spx, _ in self.superpxs]

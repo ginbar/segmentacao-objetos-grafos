@@ -11,7 +11,7 @@ import caracteristicas.momentos  as mts
 from modelo.construir import construir_modelo
 from modelo.visualzacao import visualizar_grafo_modelo
 from processamento.sog import Isom
-from processamento.preprocessamento import  marcadores, carregar_prepros_seq_imagens
+from processamento.preprocessamento import  carregar_prepros_seq_imagens
 from modelo.cores import intensidade_por_cor
 
 
@@ -47,14 +47,12 @@ def segmentar_seq_imagens(imagens, args):
     
     marcadores, bordas, momentos = carregar_prepros_seq_imagens(args)    
 
-    prim_img = imagens[0]
+    prim_img, prim_momentos = imagens[0],  momentos[0]
 
     _, grafo =  construir_modelo(prim_img, marcadores[0], bordas[0], args)
 
-    mts_por_superpx = {}
-    for no in grafo.nodes():
-        mts_por_superpx[no] = momentos[0][no]
-
+    mts_por_superpx = {label: momts for (label, momts) in prim_momentos if label in grafo}
+    
     # Usando os momentos da primeira figura como momentos do modelo
     nx.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
 
@@ -65,27 +63,27 @@ def segmentar_seq_imagens(imagens, args):
     larg, altu, _ = prim_img.shape 
     mascara = np.empty((larg, altu)) * np.nan
     
-    sog = Isom(grafo)
+    sog = Isom(grafo, epocas=20)
     
     # para testes
-    imagens = [prim_img,  prim_img,  prim_img]
-    momentos = [momentos[0], momentos[0], momentos[0]]
-    marcadores = [marcadores[0], marcadores[0], marcadores[0]]
+    imagens = [prim_img,  prim_img]
+    momentos = [momentos[0], momentos[0]]
+    marcadores = [marcadores[0], marcadores[0]]
 
     frames_segmentados = []
 
-    for img, marcs, mts in zip(imagens[1:], marcadores[1:], momentos[1:]):
-        
-        sog.novos_superpxs(mts)
+    for img, marcs, momts in zip(imagens[1:], marcadores[1:], momentos[1:]):
+
+        sog.novos_superpxs(momts)
         
         while not sog.convergiu():
             sog.epoca()
         
         resultado = sog.no_por_superpx()
         
-        for spx, no in enumerate(resultado):
-                np.putmask(mascara, marcs == spx, intensidade_por_cor[grafo.node[no]['cor']])
-        
+        for (label_spx, _), no in zip(momts, resultado):
+            np.putmask(mascara, marcs == label_spx, intensidade_por_cor[grafo.node[no]['cor']])
+
         eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
         plt.show()
 

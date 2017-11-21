@@ -3,7 +3,7 @@ from os import path, makedirs
 from os import listdir
 from skimage.io import imread
 import numpy as np
-
+import cv2
 from skimage.color import rgb2gray
 from skimage.segmentation import slic, watershed, random_walker, quickshift, felzenszwalb, mark_boundaries
 from skimage.util import img_as_float
@@ -11,29 +11,24 @@ from skimage.filters import sobel
 
 import caracteristicas.momentos as mts
 
+"""
 
+"""
 
 def marcadores_e_bordas(imagem, args):
     '''
     Cons
     '''
-    marcadores, bordas = None, None
+    marcadores, bordas = calc_marcadores(imagem, args), None
 
     if args.segm == 'wtshed':
         imagem_cinza = rgb2gray(imagem) 
         bordas = sobel(imagem)
-        marcadores = watershed(bordas, 100)
-    elif args.segm =='rdwalker':
-        alg_segmentacao = random_walker
     elif args.segm =='qcshift':
-        marcadores = quickshift(imagem, max_dist=args.distmax, sigma=args.sigma)
         bordas = mark_boundaries(imagem, marcadores)
     elif args.segm == 'slic': 
-        marcadores = slic(img_as_float(imagem), n_segments=args.k, 
-            compactness=args.compactness, sigma=args.sigma, slic_zero=args.slico)
         bordas = mark_boundaries(imagem, marcadores)
     elif args.segm == 'felzenszwalb':
-        marcadores = felzenszwalb(imagem, sigma=args.sigma)
         bordas = mark_boundaries(imagem, marcadores)
     else:
         raise ValueError('Algoritmo de segmentacao nao suportado')
@@ -64,7 +59,7 @@ def preprocessar_imagem(imagem, args):
 
 
 
-def preprocessar_seq_imgs(imagens, args):
+def preprocessar_seq_imgs(imagens, background, args):
     """
     Preprocessa uma sequencia de imagens
     """
@@ -74,15 +69,28 @@ def preprocessar_seq_imgs(imagens, args):
 
     dir_completo = 'cache/imagens/' + args.dirdest
 
-    for indice in range(len(imagens)):
+    if not path.exists(dir_completo):
+        makedirs(dir_completo)
 
+    bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
+
+    # Treina o subtrador para detectar o fundo
+    bksubtr.apply(background, learningRate=0)
+
+    for indice in range(len(imagens)): 
+        
         imagem = imagens[indice]
+        masc_bkground = bksubtr.apply(imagem, learningRate=0.5) 
+
+        # import skimage.io as io
+
+        # imagem[masc_bkground == 0] = [0, 0, 0]
+
+        # io.imshow(imagem)
+        # io.show()
 
         marcadores, bordas = marcadores_e_bordas(imagem, args)
-        momentos = mts.cromaticidade(imagem, marcadores)
-
-        if not path.exists(dir_completo):
-            makedirs(dir_completo)
+        momentos = mts.cromaticidade(imagem, marcadores, masc_bkground)
 
         np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
         np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)
@@ -124,11 +132,13 @@ def carregar_imagem_prepros(diretorio):
 
 
 
-def marcadores(imagem, args):
+def calc_marcadores(imagem, args):
     """
     Retorna os marcadores de uma imagem utilizando os argumentos para escolha do
     algoritmo e parametros. 
     """
+    marcadores = None
+
     if args.segm == 'wtshed':
         imagem_cinza = rgb2gray(imagem) 
         marcadores = watershed(bordas, 100)
@@ -154,5 +164,5 @@ def ler_seq_imagens(diretorio):
     """
     arquivos = [path.join(diretorio, arq) for arq in listdir(diretorio) if path.isfile(path.join(diretorio, arq))]
     arquivos.sort() # Lembrando que o formato dos arquivos deve ser <nome>-<numero>.<formato>
-    imagens = [imread(arq) for arq in arquivos]
+    imagens = [imread(arq) for arq in arquivos if 'background' not in arq]
     return imagens

@@ -16,16 +16,9 @@ class ConstrutorModelo(object):
         self.marcador_por_superpixel = {}
         self.esta_prescionado = False
         self.marcados = set()
-        # self.cores =  ('Azul', 'Vermelho', 'Verde', 'Amarelo', 
-        #                 'Laranja', 'Turquesa', 'Apagar')
 
         self.cores = cores.opcoes_cores
         self.rgb_cor = cores.intensidade_por_cor
-
-        # self.rgb_cor = {
-        #     'Azul':  0, 'Vermelho': 100, 'Verde':  50, 'Amarelo': 65, 
-        #     'Laranja': 80, 'Turquesa': 40, 'Apagar': None
-        # }
 
 
 
