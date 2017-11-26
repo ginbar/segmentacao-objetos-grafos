@@ -8,13 +8,6 @@ import networkx as nx
 from modelo.visualzacao import visualizar_grafo_marcadores
 
 
-"""
-Anotacoes:
--Extracao do background antes de calcular os superpixels
--FFMPEG
--
-"""
-
 
 class Isom(object):
 
@@ -54,7 +47,6 @@ class Isom(object):
         shuffle(superpxs)
 
         for label_spx, _ in superpxs:
-            print label_spx
             vencedor = self.definir_vencedor(self.grafo, label_spx, self.similaridades)
             # Se no ha vencedor, quer dizer que o superpx foi considerado parte do background
             if vencedor is not None: 
@@ -86,7 +78,6 @@ class Isom(object):
 
     def calc_similaridades(self, grafo, superpxs):
         return {label: [euclidean(momts, grafo.node[n]['momentos']) for n in grafo.nodes()] for (label, momts) in superpxs}
-        # return np.array([[euclidean(spx, grafo.node[n]['momentos']) for n in grafo.nodes()] for spx in superpxs])
 
 
 
@@ -97,12 +88,6 @@ class Isom(object):
             for ind_alter in indices_alterados:
                 similaridades[label_spx][ind_alter] = euclidean(momentos, self.grafo.node[nos[ind_alter]]['momentos'])
         
-        # nos = self.grafo.nodes()
-        # indices_alterados = [nos.index(alterado) for alterado in alterados]
-        # for ind_spx in range(len(superpxs)):
-        #     for ind_alter in indices_alterados:
-        #         similaridades[ind_spx][ ind_alter] = euclidean(superpxs[ind_spx], self.grafo.node[nos[ind_alter]]['momentos'])
-
 
 
     def vizinhos(self, grafo, no, distancia=1):

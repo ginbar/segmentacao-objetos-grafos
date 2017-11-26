@@ -82,13 +82,6 @@ def preprocessar_seq_imgs(imagens, background, args):
         imagem = imagens[indice]
         masc_bkground = bksubtr.apply(imagem, learningRate=0.5) 
 
-        # import skimage.io as io
-
-        # imagem[masc_bkground == 0] = [0, 0, 0]
-
-        # io.imshow(imagem)
-        # io.show()
-
         marcadores, bordas = marcadores_e_bordas(imagem, args)
         momentos = mts.cromaticidade(imagem, marcadores, masc_bkground)
 

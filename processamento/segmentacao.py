@@ -6,9 +6,11 @@ import numpy as np
 from  matplotlib.colors import Normalize
 from pylab import cm
 import cv2 
+import skvideo.io 
+# from skvideo.io import vwriter
 
 import caracteristicas.momentos  as mts
-from modelo.construir import construir_modelo
+from modelo.construir import construir_modelo, visualizar_modelo
 from modelo.visualzacao import visualizar_grafo_modelo
 from processamento.sog import Isom
 from processamento.preprocessamento import  carregar_prepros_seq_imagens
@@ -47,18 +49,21 @@ def segmentar_seq_imagens(imagens, args):
     
     marcadores, bordas, momentos = carregar_prepros_seq_imagens(args)    
 
-    prim_img, prim_momentos = imagens[0],  momentos[0]
+    prim_img, prim_momnts = imagens[0],  momentos[0]
+    prim_bordas, prim_marcs = bordas[0], marcadores[0]
 
-    _, grafo =  construir_modelo(prim_img, marcadores[0], bordas[0], args)
+    grafo =  construir_modelo(prim_img, prim_marcs, prim_bordas, args)
 
-    mts_por_superpx = {label: momts for (label, momts) in prim_momentos if label in grafo}
-    
-    # Usando os momentos da primeira figura como momentos do modelo
-    nx.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
+    visualizar_modelo(grafo, prim_marcs, prim_img)
 
     figura = plt.figure(figsize=(8, 8))
     eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
     eixo.imshow(prim_img)
+
+    mts_por_superpx = {label: momts for (label, momts) in prim_momnts if label in grafo}
+    
+    # Usando os momentos da primeira figura como momentos do modelo
+    nx.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
 
     larg, altu, _ = prim_img.shape 
     mascara = np.empty((larg, altu)) * np.nan
@@ -67,8 +72,8 @@ def segmentar_seq_imagens(imagens, args):
     
     # para testes
     imagens = [prim_img,  prim_img]
-    momentos = [momentos[0], momentos[0]]
-    marcadores = [marcadores[0], marcadores[0]]
+    momentos = [prim_momnts, prim_momnts]
+    marcadores = [prim_marcs, prim_marcs]
 
     frames_segmentados = []
 
@@ -87,9 +92,9 @@ def segmentar_seq_imagens(imagens, args):
         eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
         plt.show()
 
-        frames_segmentados.append(mascara)
+        frames_segmentados.append(img)
 
-    salvar_video(frames_segmentados, args.dirdest)
+    salvar_video(frames_segmentados, prim_marcs.shape, args)
 
 
 
@@ -109,13 +114,23 @@ def segmentar_imagem(imagem, args):
     visualizar_grafo_modelo(grafo, marcadores, imagem)
 
 
-def visualizar_grafo_marcadores():
-    pass
-
 
 def visualizar_segmen_video(video, args):
     pass
 
 
-def salvar_video(frames, nome, fps=0.5):
+def salvar_video(frames, dimensoes, args, fps=0.25):
+
+    opcoes = { '&fps': str(fps) }
+    writer = skvideo.io.LibAVWriter('videos/output.avi', inputdict=opcoes)
+
+
+    for frame in frames:
+        writer.writeFrame(frame)
+
+    writer.close()
+
+
+
+def salvar_mascaras_seq_imagens(mascaras, args):
     pass

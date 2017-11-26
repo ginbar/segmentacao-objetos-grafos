@@ -1,10 +1,10 @@
 
-from skimage.io import imread
 from skimage.future.graph import rag_mean_color
+from skimage.measure import regionprops
+import matplotlib.pyplot as plt
 import networkx as nx
 
 from modelo.construtor_modelo import ConstrutorModelo
-from processamento.preprocessamento import carregar_imagem_prepros, marcadores_e_bordas
 
 
 def construir_modelo(imagem, marcadores, bordas, args):
@@ -17,12 +17,25 @@ def construir_modelo(imagem, marcadores, bordas, args):
     
     construtor.mostrar_figura()
     
-    marcadores, subgrafo, marc_por_superpx = construtor.extrair_modelo()   
-    
-    nx.set_node_attributes(subgrafo, 'cor', marc_por_superpx)
-    
-    return marcadores, subgrafo
+    return construtor.extrair_modelo()
 
 
-def salvar_modelo(marcadores, grafo, marc_por_no):
-    pass
+
+def visualizar_modelo(grafo, marcadores, imagem):
+    
+    adicionados = marcadores + 1 
+    propriedades = regionprops(adicionados)    
+
+    figura = plt.figure(figsize=(8, 8))
+    eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
+    
+    posicoes = {}
+    for regiao in propriedades:
+        centroide = propriedades[regiao.label - 1].centroid
+        posicoes[regiao.label - 1] = centroide[::-1] # Invertendo x e y
+
+    nx.draw(grafo, pos=posicoes, ax=eixo)
+
+    eixo.imshow(imagem)
+
+    plt.show()        

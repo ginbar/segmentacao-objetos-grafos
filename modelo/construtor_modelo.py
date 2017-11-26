@@ -4,6 +4,7 @@ from matplotlib.widgets import Button, RadioButtons
 from  matplotlib.colors import Normalize
 import matplotlib.pyplot as plt
 import numpy as np
+import networkx as nx
 import modelo.cores as cores 
 
 class ConstrutorModelo(object):
@@ -73,7 +74,8 @@ class ConstrutorModelo(object):
 
     def extrair_modelo(self):
         subgrafo = self.grafo.subgraph(self.marcador_por_superpixel.keys())
-        return self.marcadores, subgrafo, self.marcador_por_superpixel
+        nx.set_node_attributes(subgrafo, 'cor', self.marcador_por_superpixel)
+        return  subgrafo
 
 
 

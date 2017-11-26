@@ -37,8 +37,6 @@ def superpixels_de_objeto(imagem, marcadores, mascbkgnd, porcent=0.5):
     px_obj_por_spx = [(label, imagem[np.logical_and(marcadores == label, mascbkgnd != 0)]) for (_, label) in labels]        
     labels = enumerate(np.unique(marcadores))
     superpxs = [(label, imagem[marcadores == label]) for (_, label) in labels]
-    # for  (spx, spx_obj) in zip(superpxs, px_obj_por_spx):
-    #     print (len(spx_obj[1]) / len(spx[1])), len(spx_obj[1]), len(spx[1])
     return [spx_obj for (spx, spx_obj) in zip(superpxs, px_obj_por_spx) if (len(spx_obj[1]) / len(spx[1])) > porcent]    
 
 
@@ -87,7 +85,7 @@ def criar_matriz(valores_xy):
     T = np.array([[0 for _ in range(101)] for _ in range(101)], dtype=int)
     for x, y in valores_xy:
         T[x, y] += 1
-    return T #np.array(T, dtype=int)
+    return T
 
 
 
@@ -108,6 +106,8 @@ def indices_momentos(numero):
     combinacoes = product(valores, repeat=2)  
     validos = [(x,y) for x, y in combinacoes if x == 0 or y == 0]    
     return list(islice(validos, numero))
+
+
 
 def porcent_spxs(numerador, denominador):
     len_num, len_den = len(numerador[1]), len(denominador[1]) 
