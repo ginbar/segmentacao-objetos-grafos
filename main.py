@@ -5,7 +5,7 @@ import argparse
 
 from processamento.preprocessamento import preprocessar_video, preprocessar_imagem, ler_seq_imagens, preprocessar_seq_imgs 
 from processamento.segmentacao import segmentar_video, segmentar_imagem, visualizar_segmen_video, segmentar_seq_imagens
-                                                                                        
+from processamento.resultado import visualizar_segm_seq_imagens                                                                                        
 
 
 def main():
@@ -56,8 +56,8 @@ def main():
         preprocessar_imagem(imagem, args)
     elif args.modo == 'prepros' and args.tipo == 'video':
         preprocessar_video(video, args)        
-    elif args.modo == 'visual':
-        visualizar_segmen_video(video, args)
+    elif args.modo == 'visual' and args.tipo == 'seqimgs':
+        visualizar_segm_seq_imagens(imagens, args)
     elif args.modo == 'segmen' and args.tipo == 'imagem':
         segmentar_imagem(imagem, args)
     elif args.modo == 'segmen' and args.tipo == 'video':

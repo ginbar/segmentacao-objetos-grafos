@@ -15,6 +15,7 @@ from modelo.visualzacao import visualizar_grafo_modelo
 from processamento.sog import Isom
 from processamento.preprocessamento import  carregar_prepros_seq_imagens
 from modelo.cores import intensidade_por_cor
+from resultado import salvar_mascaras_seq_imagens
 
 
 def segmentar_video(video, args):
@@ -52,13 +53,9 @@ def segmentar_seq_imagens(imagens, args):
     prim_img, prim_momnts = imagens[0],  momentos[0]
     prim_bordas, prim_marcs = bordas[0], marcadores[0]
 
-    grafo =  construir_modelo(prim_img, prim_marcs, prim_bordas, args)
+    grafo, segm_usuario =  construir_modelo(prim_img, prim_marcs, prim_bordas, args)
 
     visualizar_modelo(grafo, prim_marcs, prim_img)
-
-    figura = plt.figure(figsize=(8, 8))
-    eixo = figura.add_axes([0.1, 0.3, 0.8, 0.6])
-    eixo.imshow(prim_img)
 
     mts_por_superpx = {label: momts for (label, momts) in prim_momnts if label in grafo}
     
@@ -70,12 +67,7 @@ def segmentar_seq_imagens(imagens, args):
     
     sog = Isom(grafo, epocas=20)
     
-    # para testes
-    imagens = [prim_img,  prim_img]
-    momentos = [prim_momnts, prim_momnts]
-    marcadores = [prim_marcs, prim_marcs]
-
-    frames_segmentados = []
+    frames_segmentados = [segm_usuario]
 
     for img, marcs, momts in zip(imagens[1:], marcadores[1:], momentos[1:]):
 
@@ -85,16 +77,19 @@ def segmentar_seq_imagens(imagens, args):
             sog.epoca()
         
         resultado = sog.no_por_superpx()
-        
+        # print resultado
+        # print resultado.shape
         for (label_spx, _), no in zip(momts, resultado):
             np.putmask(mascara, marcs == label_spx, intensidade_por_cor[grafo.node[no]['cor']])
 
-        eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
-        plt.show()
+        # eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
+        # plt.show()
 
-        frames_segmentados.append(img)
+        frames_segmentados.append(mascara)
+        mascara = np.empty((larg, altu)) * np.nan        
 
-    salvar_video(frames_segmentados, prim_marcs.shape, args)
+
+    salvar_mascaras_seq_imagens(frames_segmentados, args)
 
 
 
@@ -119,18 +114,18 @@ def visualizar_segmen_video(video, args):
     pass
 
 
-def salvar_video(frames, dimensoes, args, fps=0.25):
+def salvar_video(frames, dimensoes, args, fps=0.5):
 
-    opcoes = { '&fps': str(fps) }
-    writer = skvideo.io.LibAVWriter('videos/output.avi', inputdict=opcoes)
+    writer = skvideo.io.LibAVWriter('videos/output.avi', inputdict={ '-r': str(fps) })
 
+    lista_inter = range(0, 10)
 
     for frame in frames:
-        writer.writeFrame(frame)
+        for _ in lista_inter:
+            writer.writeFrame(frame)
 
     writer.close()
 
 
 
-def salvar_mascaras_seq_imagens(mascaras, args):
-    pass
+

@@ -75,7 +75,7 @@ class ConstrutorModelo(object):
     def extrair_modelo(self):
         subgrafo = self.grafo.subgraph(self.marcador_por_superpixel.keys())
         nx.set_node_attributes(subgrafo, 'cor', self.marcador_por_superpixel)
-        return  subgrafo
+        return  subgrafo, self.mascara
 
 
 

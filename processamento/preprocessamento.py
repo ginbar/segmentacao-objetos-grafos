@@ -9,6 +9,9 @@ from skimage.segmentation import slic, watershed, random_walker, quickshift, fel
 from skimage.util import img_as_float
 from skimage.filters import sobel
 
+import skimage.io as io
+
+
 import caracteristicas.momentos as mts
 
 """
@@ -37,9 +40,46 @@ def marcadores_e_bordas(imagem, args):
 
 
 
-def preprocessar_video(video, args):
-    pass
+def preprocessar_video(video, background, args):
+    
+    if not path.exists('cache/video'):
+        makedirs('cache/video')
 
+    dir_completo = 'cache/video/' + args.dirdest
+
+    if not path.exists(dir_completo):
+        makedirs(dir_completo)
+
+    bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
+
+    bksubtr.apply(background, learningRate=0)
+
+    while video.isOpened():
+ 
+        _, frame = video.read()
+
+        masc_bkground = bksubtr.apply(frame, learningRate=0.5)
+
+        marcadores, bordas = marcadores_e_bordas(imagem, args)
+        momentos = mts.cromaticidade(imagem, marcadores, masc_bkground)
+
+        np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
+        np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)
+        np.save('{}/{}-bordas-{}'.format(dir_completo, args.dirdest, indice), bordas)
+ 
+
+    # for indice in range(len(imagens)): 
+        
+    #     imagem = imagens[indice]
+    #     masc_bkground = bksubtr.apply(imagem, learningRate=0.5) 
+
+    #     marcadores, bordas = marcadores_e_bordas(imagem, args)
+    #     momentos = mts.cromaticidade(imagem, marcadores, masc_bkground)
+
+    #     np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
+    #     np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)
+    #     np.save('{}/{}-bordas-{}'.format(dir_completo, args.dirdest, indice), bordas)
+   
 
 
 def preprocessar_imagem(imagem, args):
@@ -72,19 +112,26 @@ def preprocessar_seq_imgs(imagens, background, args):
     if not path.exists(dir_completo):
         makedirs(dir_completo)
 
-    bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
-
     # Treina o subtrador para detectar o fundo
-    bksubtr.apply(background, learningRate=0)
+    # bksubtr.apply(background, learningRate=0)
 
-    for indice in range(len(imagens)): 
+    for indice, imagem in enumerate(imagens): 
         
-        imagem = imagens[indice]
-        masc_bkground = bksubtr.apply(imagem, learningRate=0.5) 
+        bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
+
+        if indice != 0:
+            bksubtr.apply(background, learningRate=0)
+
+        masc_bkground = bksubtr.apply(imagem, learningRate=0.5) if indice != 0 else None 
+
+        if masc_bkground is not None:
+            io.imshow(masc_bkground)
+            io.show()
 
         marcadores, bordas = marcadores_e_bordas(imagem, args)
-        momentos = mts.cromaticidade(imagem, marcadores, masc_bkground)
-
+        
+        momentos = mts.cromaticidade(imagem, marcadores, mascbkgnd=masc_bkground)
+        
         np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
         np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)
         np.save('{}/{}-bordas-{}'.format(dir_completo, args.dirdest, indice), bordas)

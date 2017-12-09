@@ -13,26 +13,26 @@ import numpy as np
 
 
 
-def cromaticidade(imagem, marcadores, mascbkgnd, numero_momentos=5):
+def cromaticidade(imagem, marcadores, mascbkgnd=None, numero_momentos=5):
     """
     Extrair momentos de cromaticidade.    
     """
 
-    superpixels = superpixels_de_objeto(rgb2xyz(imagem), marcadores, mascbkgnd)
+    img_xyz = rgb2xyz(imagem)
+    superpixels = separar_superpx(img_xyz, marcadores) if mascbkgnd is None else superpxs_de_objeto(img_xyz, marcadores, mascbkgnd)
+    print mascbkgnd
+    print len(superpixels)
 
     espacos_xy = [espaco_xy(pixels) for (_, pixels) in superpixels]
-    
     matrizes = [criar_matriz(xy) for xy in espacos_xy]
-
     indices = indices_momentos(numero_momentos)
-    
     momentos = np.array([[momentos_por_indices(matriz, m, l) for m, l in indices] for matriz in matrizes])
         
     return np.array([(label, np.append(mts[:, 0], mts[:, 1])) for (label, _), mts in zip(superpixels, momentos)], dtype=object)
 
 
 
-def superpixels_de_objeto(imagem, marcadores, mascbkgnd, porcent=0.5):
+def superpxs_de_objeto(imagem, marcadores, mascbkgnd, porcent=0.2):
     labels = enumerate(np.unique(marcadores))
     px_obj_por_spx = [(label, imagem[np.logical_and(marcadores == label, mascbkgnd != 0)]) for (_, label) in labels]        
     labels = enumerate(np.unique(marcadores))
@@ -46,7 +46,7 @@ def cromaticidade_sem_mascara(imagem, marcadores, numero_momentos=5):
     Extrair momentos de cromaticidade.    
     """
 
-    superpixels = separar_superpixels(rgb2xyz(imagem), marcadores)
+    superpixels = separar_superpx(rgb2xyz(imagem), marcadores)
 
     espacos_xy = [espaco_xy(pixels) for (_, pixels) in superpixels]
     
@@ -58,9 +58,11 @@ def cromaticidade_sem_mascara(imagem, marcadores, numero_momentos=5):
     
     return np.array([np.append(mts[:, 0], mts[:, 1]) for (label, _), mts in zip(superpixels, momentos)]) 
 
+# comentar tempo de processamento 
+# usar a mascara de segmentacao
 
 
-def separar_superpixels(imagem, marcadores):
+def separar_superpx(imagem, marcadores):
     labels = enumerate(np.unique(marcadores))    
     return [(label, imagem[marcadores == label]) for (_, label) in labels]
 
