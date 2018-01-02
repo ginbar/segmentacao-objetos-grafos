@@ -44,6 +44,9 @@ def main():
         help='Filtro de deteccao de bordas para o watershed.')
     parser.add_argument('-slico', type=bool, default=False, 
         help='Slic zero.')
+    parser.add_argument('-ratio', type=float, default=0.5, 
+        help='Relacao entre o peso que se dar a cor e a distancia')
+    
 
     
     args = parser.parse_args()

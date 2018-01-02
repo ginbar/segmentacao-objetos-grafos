@@ -8,6 +8,7 @@ from skimage.color import rgb2gray
 from skimage.segmentation import slic, watershed, random_walker, quickshift, felzenszwalb, mark_boundaries
 from skimage.util import img_as_float
 from skimage.filters import sobel
+from skimage.measure import regionprops
 
 import skimage.io as io
 
@@ -37,6 +38,7 @@ def marcadores_e_bordas(imagem, args):
         raise ValueError('Algoritmo de segmentacao nao suportado')
 
     return marcadores, bordas
+
 
 
 
@@ -82,10 +84,13 @@ def preprocessar_video(video, background, args):
    
 
 
+
 def preprocessar_imagem(imagem, args):
 
     marcadores, bordas = marcadores_e_bordas(imagem, args)
-    
+
+    print mts.cromaticidade(imagem, marcadores)
+
     if not path.exists('cache'):
         makedirs('cache/imagens')
     
@@ -96,6 +101,7 @@ def preprocessar_imagem(imagem, args):
 
     np.save(dir_completo + '/marcadores.npy', marcadores)
     np.save(dir_completo + '/bordas.npy', bordas)
+
 
 
 
@@ -124,17 +130,18 @@ def preprocessar_seq_imgs(imagens, background, args):
 
         masc_bkground = bksubtr.apply(imagem, learningRate=0.5) if indice != 0 else None 
 
-        if masc_bkground is not None:
-            io.imshow(masc_bkground)
-            io.show()
-
         marcadores, bordas = marcadores_e_bordas(imagem, args)
         
         momentos = mts.cromaticidade(imagem, marcadores, mascbkgnd=masc_bkground)
         
+        propriedades = regionprops(marcadores)
+        centroides = np.array([(label, propriedades[label - 1].centroid) for (label, _) in momentos], dtype=object) 
+        
+        np.save( '{}/{}-centroides-{}'.format(dir_completo, args.dirdest, indice), centroides)
         np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
         np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)
         np.save('{}/{}-bordas-{}'.format(dir_completo, args.dirdest, indice), bordas)
+
 
 
 
@@ -146,16 +153,18 @@ def carregar_prepros_seq_imagens(args):
     
     arquivos = [path.join(diretorio, arq) for arq in listdir(diretorio) if path.isfile(path.join(diretorio, arq))]
 
-    n_frames = len(arquivos) / 3
+    n_frames = len(arquivos) / 4 # n matrizes para bordas, marcadores, centroides e momentos
 
-    marcs, bordas, momts = [], [], []
+    marcs, bordas, momts, centrs = [], [], [], []
 
     for indice in range(n_frames):
         marcs.append(np.load('{}/{}-marcadores-{}.npy'.format(diretorio, args.dirdest, indice))) 
         bordas.append(np.load('{}/{}-bordas-{}.npy'.format(diretorio, args.dirdest, indice)))
         momts.append(np.load('{}/{}-momentos-{}.npy'.format(diretorio, args.dirdest, indice)))
+        centrs.append(np.load('{}/{}-centroides-{}.npy'.format(diretorio, args.dirdest, indice)))
 
-    return marcs, bordas, momts
+    return marcs, bordas, momts, centrs
+
 
 
 
@@ -169,6 +178,7 @@ def carregar_imagem_prepros(diretorio):
     bordas = np.load(dir_completo + '/bordas.npy')
 
     return marcadores, bordas
+
 
 
 
@@ -195,6 +205,7 @@ def calc_marcadores(imagem, args):
         raise ValueError('Algoritmo de segmentacao nao suportado')
 
     return marcadores
+
 
 
 

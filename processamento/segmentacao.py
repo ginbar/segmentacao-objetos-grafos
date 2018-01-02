@@ -5,7 +5,8 @@ import networkx as nx
 import numpy as np
 from  matplotlib.colors import Normalize
 from pylab import cm
-import cv2 
+import cv2
+import math 
 import skvideo.io 
 # from skvideo.io import vwriter
 
@@ -42,54 +43,58 @@ def segmentar_video(video, args):
 
 
 
+
 def segmentar_seq_imagens(imagens, args):
     """
     Segmenta uma conjunto de imagens parecidas. As imagens devem ser passadas 
     como um array. 
     """
     
-    marcadores, bordas, momentos = carregar_prepros_seq_imagens(args)    
+    marcadores, bordas, momentos, centroides = carregar_prepros_seq_imagens(args)    
 
     prim_img, prim_momnts = imagens[0],  momentos[0]
     prim_bordas, prim_marcs = bordas[0], marcadores[0]
+    prim_centrs = centroides[0]
 
     grafo, segm_usuario =  construir_modelo(prim_img, prim_marcs, prim_bordas, args)
 
     visualizar_modelo(grafo, prim_marcs, prim_img)
 
     mts_por_superpx = {label: momts for (label, momts) in prim_momnts if label in grafo}
-    
+    centr_por_superpx = {label: centr for (label, centr) in prim_centrs if label in grafo}
+
     # Usando os momentos da primeira figura como momentos do modelo
     nx.set_node_attributes(grafo, 'momentos', mts_por_superpx)     
+    nx.set_node_attributes(grafo, 'centroide', centr_por_superpx)
 
     larg, altu, _ = prim_img.shape 
     mascara = np.empty((larg, altu)) * np.nan
     
-    sog = Isom(grafo, epocas=20)
+    norm_centr = _normal_centroides(larg, altu)
+    num_momts, norm_momts =  _normal_momentos(momentos[0])
+
+    sog = Isom(grafo, norm_momts, num_momts, norm_centr, epocas=20, ratio=args.ratio)
     
     frames_segmentados = [segm_usuario]
 
-    for img, marcs, momts in zip(imagens[1:], marcadores[1:], momentos[1:]):
+    for img, marcs, momts, centrs in zip(imagens[1:], marcadores[1:], momentos[1:], centroides[1:]):
 
-        sog.novos_superpxs(momts)
+        sog.novos_superpxs(momts, centrs)
         
         while not sog.convergiu():
             sog.epoca()
         
         resultado = sog.no_por_superpx()
-        # print resultado
-        # print resultado.shape
+        
         for (label_spx, _), no in zip(momts, resultado):
             np.putmask(mascara, marcs == label_spx, intensidade_por_cor[grafo.node[no]['cor']])
-
-        # eixo.imshow(mascara, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
-        # plt.show()
 
         frames_segmentados.append(mascara)
         mascara = np.empty((larg, altu)) * np.nan        
 
 
     salvar_mascaras_seq_imagens(frames_segmentados, args)
+
 
 
 
@@ -110,8 +115,11 @@ def segmentar_imagem(imagem, args):
 
 
 
+
 def visualizar_segmen_video(video, args):
     pass
+
+
 
 
 def salvar_video(frames, dimensoes, args, fps=0.5):
@@ -129,3 +137,17 @@ def salvar_video(frames, dimensoes, args, fps=0.5):
 
 
 
+def _normal_centroides(largura, altura):
+    return math.sqrt(math.pow(largura, 2) + math.pow(altura, 2))
+
+
+def _normal_momentos(momentos):
+    
+    matriz = np.array([momts for _, momts in momentos])    
+    num_momts = matriz[0].size
+
+    valores_max = np.array([np.max(matriz[:,indice]) for indice in range(num_momts)])
+
+    print valores_max
+
+    return num_momts, valores_max

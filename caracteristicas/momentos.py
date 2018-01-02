@@ -20,9 +20,7 @@ def cromaticidade(imagem, marcadores, mascbkgnd=None, numero_momentos=5):
 
     img_xyz = rgb2xyz(imagem)
     superpixels = separar_superpx(img_xyz, marcadores) if mascbkgnd is None else superpxs_de_objeto(img_xyz, marcadores, mascbkgnd)
-    print mascbkgnd
-    print len(superpixels)
-
+    
     espacos_xy = [espaco_xy(pixels) for (_, pixels) in superpixels]
     matrizes = [criar_matriz(xy) for xy in espacos_xy]
     indices = indices_momentos(numero_momentos)
