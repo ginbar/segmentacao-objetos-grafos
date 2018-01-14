@@ -148,6 +148,4 @@ def _normal_momentos(momentos):
 
     valores_max = np.array([np.max(matriz[:,indice]) for indice in range(num_momts)])
 
-    print valores_max
-
     return num_momts, valores_max

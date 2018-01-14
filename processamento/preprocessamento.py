@@ -118,8 +118,12 @@ def preprocessar_seq_imgs(imagens, background, args):
     if not path.exists(dir_completo):
         makedirs(dir_completo)
 
-    # Treina o subtrador para detectar o fundo
-    # bksubtr.apply(background, learningRate=0)
+    # bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
+    # for imagem in imagens:
+    #     bksubtr.apply(imagem)
+
+    background = imagens[0] if background is None else background
+    imagens = imagens[1:] if background is None else imagens
 
     for indice, imagem in enumerate(imagens): 
         
@@ -130,13 +134,19 @@ def preprocessar_seq_imgs(imagens, background, args):
 
         masc_bkground = bksubtr.apply(imagem, learningRate=0.5) if indice != 0 else None 
 
+        # masc_bkground = bksubtr.apply(imagem)  
+
+        # io.imshow(masc_bkground)
+        # io.show()
+
         marcadores, bordas = marcadores_e_bordas(imagem, args)
         
         momentos = mts.cromaticidade(imagem, marcadores, mascbkgnd=masc_bkground)
-        
+        # momentos = mts.cromaticidade(imagem, marcadores)
+
         propriedades = regionprops(marcadores)
-        centroides = np.array([(label, propriedades[label - 1].centroid) for (label, _) in momentos], dtype=object) 
-        
+        centroides = np.array([(label, np.array(propriedades[label - 1].centroid)) for (label, _) in momentos], dtype=object) 
+
         np.save( '{}/{}-centroides-{}'.format(dir_completo, args.dirdest, indice), centroides)
         np.save( '{}/{}-momentos-{}'.format(dir_completo, args.dirdest, indice), momentos)
         np.save('{}/{}-marcadores-{}'.format(dir_completo, args.dirdest, indice), marcadores)

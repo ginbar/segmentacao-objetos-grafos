@@ -30,7 +30,7 @@ def cromaticidade(imagem, marcadores, mascbkgnd=None, numero_momentos=5):
 
 
 
-def superpxs_de_objeto(imagem, marcadores, mascbkgnd, porcent=0.2):
+def superpxs_de_objeto(imagem, marcadores, mascbkgnd, porcent=0.5):
     labels = enumerate(np.unique(marcadores))
     px_obj_por_spx = [(label, imagem[np.logical_and(marcadores == label, mascbkgnd != 0)]) for (_, label) in labels]        
     labels = enumerate(np.unique(marcadores))

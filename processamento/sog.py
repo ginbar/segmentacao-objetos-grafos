@@ -35,7 +35,6 @@ class Isom(object):
 
 
     def novos_superpxs(self, superpxs, centroides):
-        print superpxs, centroides
         self.superpxs = superpxs
         self.centroides = {label: centr for label, centr in centroides} 
         self.epoca_atual = 1
@@ -83,6 +82,7 @@ class Isom(object):
 
     def definir_vencedor(self, grafo, indice_superpx, similaridades):
         indice_vencedor = np.argmin(similaridades[indice_superpx]) 
+        print grafo.nodes()[indice_vencedor]
         return grafo.nodes()[indice_vencedor]
     
 
@@ -91,19 +91,25 @@ class Isom(object):
     def calc_similaridades(self, grafo, superpxs):
         # return {label: [euclidean(momts, grafo.node[n]['momentos']) for n in grafo.nodes()] for (label, momts) in superpxs}
         
-        simils = {}
+        simils, raiz_num_momts = {}, math.sqrt(self.num_momts)
 
         for label, momts in superpxs:
         
             centr = self.centroides[label]
-            simils[label] = {}
-        
-            for no in self.grafo.nodes():
-                dist_momts = euclidean(np.divide(momts, self.normal_momts), np.divide(grafo.node[no]['momentos'], self.normal_momts))
-                dist_centr =  euclidean(centr, grafo.node[no]['centroide'])
-                print dist_centr / self.normal_centr, dist_momts / math.sqrt(self.num_momts) 
-                simils[label][no] = dist_momts * self.ratio + dist_centr * (1 - self.ratio) 
-        
+            simils[label] = range(self.grafo.number_of_nodes())
+            
+            for indice, no in enumerate(self.grafo.nodes()):
+                
+                mts_no_normalizados = np.divide(grafo.node[no]['momentos'], self.normal_momts)
+                mts_spx_normalizados = np.divide(momts, self.normal_momts)
+                
+                dist_momts = euclidean(mts_spx_normalizados, mts_no_normalizados) / raiz_num_momts
+                dist_centr =  euclidean(centr, grafo.node[no]['centroide']) / self.normal_centr
+                
+                # print dist_centr / self.normal_centr, dist_momts / raiz_num_momts 
+                simils[label][indice] = dist_momts * self.ratio + dist_centr  * (1 - self.ratio) 
+                # simils[label][indice] = euclidean(grafo.node[no]['momentos'], momts)
+
         return simils
 
 
@@ -115,15 +121,25 @@ class Isom(object):
         # for label_spx, momentos in superpxs:
         #     for ind_alter in indices_alterados:
         #         similaridades[label_spx][ind_alter] = euclidean(momentos, self.grafo.node[nos[ind_alter]]['momentos'])
-        nos = self.grafo.nodes()
-        indices_alterados = [nos.index(alterado) for alterado in alterados]
-        for label, momentos in self.superpxs:
-            centroide = self.centroides[label]
-            for ind_alter in indices_alterados:
-                dist_momts = euclidean(momentos, self.grafo.node[nos[ind_alter]]['momentos'])
-                dist_centr = euclidean(centroide, self.grafo.node[nos[ind_alter]]['centroide'])
-                similaridades[label][ind_alter] = dist_centr * self.ratio + dist_centr * (1 - self.ratio)
         
+        nos = self.grafo.nodes()
+        raiz_num_momts = math.sqrt(self.num_momts)
+        indices_alterados = [nos.index(alterado) for alterado in alterados]
+        
+        for label, momentos in self.superpxs:
+            
+            centroide = self.centroides[label]
+            
+            for ind_alter in indices_alterados:
+                mts_no_normalizados = np.divide(self.grafo.node[nos[ind_alter]]['momentos'], self.normal_momts)
+                mts_spx_normalizados = np.divide(momentos, self.normal_momts)
+                
+                dist_momts = euclidean(mts_spx_normalizados, mts_no_normalizados)
+                dist_centr = euclidean(centroide, self.grafo.node[nos[ind_alter]]['centroide'])
+
+                # self.similaridades[label][ind_alter] = (dist_momts / raiz_num_momts)* self.ratio + (dist_centr / self.normal_centr) * (1 - self.ratio)
+                self.similaridades[label][ind_alter] = euclidean(momentos, self.grafo.node[nos[ind_alter]]['momentos'])
+
 
 
 

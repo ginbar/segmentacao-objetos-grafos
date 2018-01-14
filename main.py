@@ -2,6 +2,7 @@
 from skimage.io import imread
 from skimage import data
 import argparse
+import os
 
 from processamento.preprocessamento import preprocessar_video, preprocessar_imagem, ler_seq_imagens, preprocessar_seq_imgs 
 from processamento.segmentacao import segmentar_video, segmentar_imagem, visualizar_segmen_video, segmentar_seq_imagens
@@ -53,7 +54,9 @@ def main():
     imagem = imread(args.arq) if args.tipo == 'imagem'  else None
     video = None if args.tipo == 'video' else None
     imagens = ler_seq_imagens(args.arq) if args.tipo == 'seqimgs' else None
-    background = imread('{}/background.{}'.format(args.arq, args.formato)) if args.tipo == 'seqimgs' else None
+    
+    path_bkgnd = '{}/background.{}'.format(args.arq, args.formato)
+    background = imread(path_bkgnd) if os.path.isfile(path_bkgnd) else None
 
     if args.modo == 'prepros' and args.tipo == 'imagem':
         preprocessar_imagem(imagem, args)
