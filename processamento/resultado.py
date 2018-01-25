@@ -20,8 +20,10 @@ def salvar_mascaras_seq_imagens(mascaras, args):
     _criar_ser_nao_existe('resultados')
     _criar_ser_nao_existe(diretorio)
     
+    digitos = len(str(len(mascaras))) # numero de digitos que o numero de mascaras tem
+
     for indice, mascara in enumerate(mascaras):
-        np.save( '{}/{}-segmentacao-{}'.format(diretorio, args.dirdest, indice), mascara)
+        np.save( '{}/{}-segmentacao-{}'.format(diretorio, args.dirdest, str(indice).zfill(digitos)), mascara)
 
 
 
@@ -29,6 +31,8 @@ def ler_mascaras_seq_imagens(args):
     diretorio = 'resultados/' + args.dirdest
     arqs = [path.join(diretorio, arq) for arq in listdir(diretorio) if path.isfile(path.join(diretorio, arq))]
     arqs.sort()
+    for arq in arqs:
+        print arq
     return [np.load(arq) for arq in arqs]
 
 

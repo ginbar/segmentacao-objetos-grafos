@@ -118,31 +118,22 @@ def preprocessar_seq_imgs(imagens, background, args):
     if not path.exists(dir_completo):
         makedirs(dir_completo)
 
-    # bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
-    # for imagem in imagens:
-    #     bksubtr.apply(imagem)
-
-    background = imagens[0] if background is None else background
-    imagens = imagens[1:] if background is None else imagens
+    bksubtr, masc_bkground = None, None
 
     for indice, imagem in enumerate(imagens): 
-        
-        bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
 
         if indice != 0:
-            bksubtr.apply(background, learningRate=0)
+            bksubtr = cv2.bgsegm.createBackgroundSubtractorMOG()
+            bksubtr.apply(background, learningRate=0)               
+            masc_bkground = bksubtr.apply(imagem, learningRate=0.5)  
 
-        masc_bkground = bksubtr.apply(imagem, learningRate=0.5) if indice != 0 else None 
-
-        # masc_bkground = bksubtr.apply(imagem)  
-
-        # io.imshow(masc_bkground)
-        # io.show()
+        # if indice != 0:
+        #     io.imshow(masc_bkground)
+        #     io.show()
 
         marcadores, bordas = marcadores_e_bordas(imagem, args)
         
         momentos = mts.cromaticidade(imagem, marcadores, mascbkgnd=masc_bkground)
-        # momentos = mts.cromaticidade(imagem, marcadores)
 
         propriedades = regionprops(marcadores)
         centroides = np.array([(label, np.array(propriedades[label - 1].centroid)) for (label, _) in momentos], dtype=object) 
@@ -224,6 +215,11 @@ def ler_seq_imagens(diretorio):
     Ler uma sequencia de imagens dentro de um diretorio.
     """
     arquivos = [path.join(diretorio, arq) for arq in listdir(diretorio) if path.isfile(path.join(diretorio, arq))]
+
     arquivos.sort() # Lembrando que o formato dos arquivos deve ser <nome>-<numero>.<formato>
     imagens = [imread(arq) for arq in arquivos if 'background' not in arq]
-    return imagens
+    
+    backgrounds = [imread(arq) for arq in arquivos if 'background' in arq]
+    background = backgrounds[0] if len(backgrounds) > 0 else None
+
+    return background, imagens

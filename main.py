@@ -53,10 +53,8 @@ def main():
     args = parser.parse_args()
     imagem = imread(args.arq) if args.tipo == 'imagem'  else None
     video = None if args.tipo == 'video' else None
-    imagens = ler_seq_imagens(args.arq) if args.tipo == 'seqimgs' else None
+    background, imagens = ler_seq_imagens(args.arq) if args.tipo == 'seqimgs' else (None, None)
     
-    path_bkgnd = '{}/background.{}'.format(args.arq, args.formato)
-    background = imread(path_bkgnd) if os.path.isfile(path_bkgnd) else None
 
     if args.modo == 'prepros' and args.tipo == 'imagem':
         preprocessar_imagem(imagem, args)
