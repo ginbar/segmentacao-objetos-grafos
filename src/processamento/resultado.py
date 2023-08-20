@@ -8,7 +8,7 @@ from os import listdir
 import time
 import numpy as np
 
-from preprocessamento import ler_seq_imagens
+from preprocessamento import read_bkg_and_images
 
 
 index_masc = 0
@@ -32,14 +32,15 @@ def ler_mascaras_seq_imagens(args):
     arqs = [path.join(diretorio, arq) for arq in listdir(diretorio) if path.isfile(path.join(diretorio, arq))]
     arqs.sort()
     for arq in arqs:
-        print arq
+        print(arq)
     return [np.load(arq) for arq in arqs]
+
 
 
 def mudar_visualizacao(imagens, mascaras, eixo, figura):
     
     global index_masc
-    # print index_masc
+
     if index_masc == len(mascaras):
         plt.close()
     else:        
@@ -49,6 +50,7 @@ def mudar_visualizacao(imagens, mascaras, eixo, figura):
         figura.canvas.draw()
     
     index_masc = index_masc + 1
+
 
 
 def visualizar_segm_seq_imagens(imagens, args):
@@ -70,19 +72,6 @@ def visualizar_segm_seq_imagens(imagens, args):
     botao_prox.on_clicked(lambda evento: mudar_visualizacao(imagens, mascaras, eixo, figura))
 
     plt.show()
-
-    # for (imag, masc) in zip(imagens[1:], mascaras):
-    #     print 'loop'
-    #     eixo.clear()
-    #     eixo.imshow(imag)
-    #     eixo.imshow(masc, norm=Normalize(0, 100), cmap=cm.jet, alpha=.6)
-    #     figura.canvas.draw()
-    #     plt.show()
-
-    # plt.close()
-
-
-
 
 
 

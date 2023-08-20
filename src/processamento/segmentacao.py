@@ -11,10 +11,10 @@ import skvideo.io
 # from skvideo.io import vwriter
 
 import caracteristicas.momentos  as mts
-from modelo.construir import construir_modelo, visualizar_modelo
-from modelo.visualzacao import visualizar_grafo_modelo
+from modelo.construir import build_model, visualize_model
+from modelo.visualzacao import visualize_model_graph
 from processamento.sog import Isom
-from processamento.preprocessamento import  carregar_prepros_seq_imagens
+from processamento.preprocessamento import  load_processement
 from modelo.cores import intensidade_por_cor
 from resultado import salvar_mascaras_seq_imagens
 
@@ -25,7 +25,7 @@ def segmentar_video(video, args):
     """    
     _, frame = video.read()
 
-    marcadores, grafo, cor_por_no =  construir_modelo(frame, args)
+    marcadores, grafo, cor_por_no =  build_model(frame, args)
     
     superpxs = mts.cromaticidade(video, marcadores)
 
@@ -35,7 +35,7 @@ def segmentar_video(video, args):
     sog = Isom(grafo, cor_por_no, )
 
     while not sog.convergiu():
-        sog.epoca()
+        sog.epoch()
         
         #if args.prepros == False:
         #    visualizar_grafo_marcadores()
@@ -50,15 +50,15 @@ def segmentar_seq_imagens(imagens, args):
     como um array. 
     """
     
-    marcadores, bordas, momentos, centroides = carregar_prepros_seq_imagens(args)    
+    marcadores, bordas, momentos, centroides = load_processement(args)    
 
     prim_img, prim_momnts = imagens[0],  momentos[0]
     prim_bordas, prim_marcs = bordas[0], marcadores[0]
     prim_centrs = centroides[0]
 
-    grafo, segm_usuario =  construir_modelo(prim_img, prim_marcs, prim_bordas, args)
+    grafo, segm_usuario =  build_model(prim_img, prim_marcs, prim_bordas, args)
 
-    visualizar_modelo(grafo, prim_marcs, prim_img)
+    visualize_model(grafo, prim_marcs, prim_img)
 
     mts_por_superpx = {label: momts for (label, momts) in prim_momnts if label in grafo}
     centr_por_superpx = {label: centr for (label, centr) in prim_centrs if label in grafo}
@@ -82,9 +82,9 @@ def segmentar_seq_imagens(imagens, args):
         sog.novos_superpxs(momts, centrs)
         
         while not sog.convergiu():
-            sog.epoca()
+            sog.epoch()
         
-        resultado = sog.no_por_superpx()
+        resultado = sog.node_per_superpx()
         
         for (label_spx, _), no in zip(momts, resultado):
             np.putmask(mascara, marcs == label_spx, intensidade_por_cor[grafo.node[no]['cor']])
@@ -109,9 +109,9 @@ def segmentar_imagem(imagem, args):
     else:
         marcadores, bordas = marcadores_e_bordas(imagem, args)
 
-    marcadores, grafo, marc_por_no = construir_modelo(imagem, marcadores, bordas, args)
+    marcadores, grafo, marc_por_no = build_model(imagem, marcadores, bordas, args)
 
-    visualizar_grafo_modelo(grafo, marcadores, imagem)
+    visualize_model_graph(grafo, marcadores, imagem)
 
 
 

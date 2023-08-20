@@ -1,3 +1,3 @@
-# Segmentação de objetos utilizando grafos auto-organizáveis
+# Video object segmentation using SOG (Self Organizing Graphs)
 
-Trabalho de conclusão de curso.
+## Refences

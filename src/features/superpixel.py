@@ -1,7 +1,11 @@
 
 class SuperPixel(object):
 
-    def __init__(self, label, momentos):
+    def __init__(
+        self, 
+        label:int, 
+        momentos:list
+    ):
         self.label = label
         self.momentos = momentos
 

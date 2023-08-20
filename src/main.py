@@ -4,7 +4,7 @@ from skimage import data
 import argparse
 import os
 
-from processamento.preprocessamento import preprocessar_video, preprocessar_imagem, ler_seq_imagens, preprocessar_seq_imgs 
+from processamento.preprocessamento import preprocessar_video, preprocessar_imagem, read_bkg_and_images, preprocessar_seq_imgs 
 from processamento.segmentacao import segmentar_video, segmentar_imagem, visualizar_segmen_video, segmentar_seq_imagens
 from processamento.resultado import visualizar_segm_seq_imagens                                                                                        
 
@@ -53,7 +53,7 @@ def main():
     args = parser.parse_args()
     imagem = imread(args.arq) if args.tipo == 'imagem'  else None
     video = None if args.tipo == 'video' else None
-    background, imagens = ler_seq_imagens(args.arq) if args.tipo == 'seqimgs' else (None, None)
+    background, imagens = read_bkg_and_images(args.arq) if args.tipo == 'seqimgs' else (None, None)
     
 
     if args.modo == 'prepros' and args.tipo == 'imagem':
@@ -72,34 +72,6 @@ def main():
         preprocessar_seq_imgs(imagens, background, args)
     else:
         raise ValueError('Modo desconhecido.')
-
-    # import numpy as np
-    # import cv2
-
-    # cap = cv2.VideoCapture(0)
-
-    # # Define the codec and create VideoWriter object
-    # fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
-
-    # while(cap.isOpened()):
-    #     ret, frame = cap.read()
-    #     if ret==True:
-    #         frame = cv2.flip(frame,0)
-
-    #         # write the flipped frame
-    #         out.write(frame)
-
-    #         cv2.imshow('frame',frame)
-    #         if cv2.waitKey(1) & 0xFF == ord('q'):
-    #             break
-    #     else:
-    #         break
-
-    # # Release everything if job is finished
-    # cap.release()
-    # out.release()
-    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()
